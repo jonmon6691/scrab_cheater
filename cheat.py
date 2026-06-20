@@ -40,6 +40,13 @@ while True:
 		exp = re.compile(arg)
 		cur_set = sorted(list(filter(exp.match, cur_set)), key=len)
 		cur_prompt = cur_prompt + "%s(%d)>" % (arg, len(cur_set))
+		if len(cur_set) == 0:
+			print(cur_prompt)
+			if len(stack) > 0:
+				cur_set, cur_prompt = stack.pop()
+		elif 0 < len(cur_set) < 20:
+			for i in cur_set:
+				print(i)
 
 	if cmd == "b": # Go back to the most recent state
 		if len(stack) > 0:
