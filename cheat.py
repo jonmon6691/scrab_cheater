@@ -1,8 +1,13 @@
 import re
+import readline
 
-cur_set = list(['a','b','c'])
+try:
+	with open("dict.csv", 'r') as f:
+		cur_set = [x.strip().lower() for x in f.readlines()]
+except Exception:
+	cur_set = []
 cur_prompt = "(%d)>" % len(cur_set)
-cur_char_class = '\w'
+cur_char_class = '\\w'
 stack = []
 
 while True:
@@ -12,7 +17,7 @@ while True:
 		cmd, arg = line.split(' ', maxsplit=1)
 	except ValueError:
 		cmd = line
-		arg = None
+		arg = ""
 
 	# The following group of commands pre-process the arg and pass it to "r"
 	if cmd == "rs": # Arg is intended to start the word with _* trailing
@@ -45,26 +50,14 @@ while True:
 			print(i)
 
 	if cmd == "l": # Reset state and load arg as cur_set, one item per line.
+		if not arg:
+			print("Usage: l <filename>")
+			continue
 		with open(arg, 'r') as f:
 			cur_set = [x.strip().lower() for x in f.readlines()]
 		cur_prompt = "(%d)>" % len(cur_set)
 		stack = []
 
-	if cmd == "f": # Filter results based on count of characters in the cur_char class
-		stack.append((cur_set, cur_prompt))
-		tmp_set = []
-		if type(arg) is str:
-			char_set = cur_char_class + arg
-		else:
-			char_set = cur_char_class
-		for word in cur_set:
-			for char in set(char_set):
-				if word.count(char) > char_set.count(char):
-					break
-			else: # All good
-				tmp_set.append(word)
-		cur_set = tmp_set
-		cur_prompt = cur_prompt + "(%d)>" % len(cur_set)
 	# Anytime the character "_" appears in a re, it is replaced with a canned string
 	# Helpful for saving a character class like [aeiou] or one representing your available
 	# letters. Which is a common wildcard used in this tool.
@@ -73,6 +66,20 @@ while True:
 			cur_char_class = arg
 		else:
 			print(cur_char_class)
+
+	if cmd == "?":
+		print("Commands:")
+		print("  r <regex> - Raw regex. '_' is replaced with the tile set.")
+		print("    rs <regex> - \"Starts with\" -> ^regex_*$")
+		print("    re <regex> - \"Ends with\" -> ^_*regex$")
+		print("    rw <regex> - \"Wrap\" -> ^_*regex_*$")
+		print("    rx <regex> - \"Exact\" -> ^regex$")
+		print("  b - Go back to the most recent state")
+		print("  p - Print set")
+		print("  l <filename> - Load a dictionary file.")
+		print("  _ [chars] - Print / reset tile set")
+		print("  ? - Print this help message")
+		print("  q - Quit")
 
 	if cmd == "q":
 		break
